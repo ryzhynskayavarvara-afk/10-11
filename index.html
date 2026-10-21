@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>КиберЩит 10–11 — мини-игра по кибербезопасности</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    background:
+      radial-gradient(1000px 500px at 15% 0%,#241407 0%,transparent 60%),
+      radial-gradient(900px 600px at 85% 100%,#04202f 0%,transparent 60%),
+      #080b12;
+    color:#e6ecf5;line-height:1.55;
+    display:flex;justify-content:center;
+    padding:20px 14px 48px;
+    min-height:100vh;
+  }
+  .app{width:100%;max-width:820px}
+
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{
+    font-weight:800;font-size:18px;letter-spacing:.5px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    display:flex;align-items:center;gap:9px;color:#cbd5e1;
+  }
+  .brand span{
+    background:linear-gradient(90deg,#f59e0b,#38bdf8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .scorebox{
+    font-size:13px;color:#94a3b8;background:rgba(17,22,32,.85);
+    border:1px solid #24303f;padding:7px 14px;border-radius:8px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-weight:600;
+  }
+  .scorebox b{color:#f59e0b;font-size:16px}
+
+  .progress{height:8px;background:rgba(255,255,255,.05);border:1px solid #24303f;border-radius:6px;overflow:hidden}
+  #bar{height:100%;width:0;background:linear-gradient(90deg,#f59e0b,#38bdf8);transition:width .35s ease;box-shadow:0 0 10px rgba(56,189,248,.5)}
+
+  .meta{
+    font-size:12px;color:#64748b;margin:10px 2px 14px;
+    letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+
+  .card{
+    background:rgba(17,22,32,.92);
+    border:1px solid #24303f;
+    border-radius:14px;padding:26px;
+    box-shadow:0 24px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+
+  .h1{
+    font-size:26px;margin:0 0 10px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    background:linear-gradient(90deg,#fbbf24,#7dd3fc);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .lead{color:#94a3b8;margin:0 0 16px;font-size:15px}
+  .rules{margin:0 0 22px;padding-left:20px;color:#7c8ba1;font-size:14px}
+  .rules li{margin-bottom:8px}
+
+  .tag{
+    display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:1.1px;
+    padding:5px 12px;border-radius:6px;border:1px solid;font-weight:700;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  .tag.choice{color:#7dd3fc;border-color:#1e4a66;background:rgba(56,189,248,.08)}
+  .tag.tf{color:#fbbf24;border-color:#5a4516;background:rgba(251,191,36,.08)}
+  .tag.open{color:#86efac;border-color:#1c5142;background:rgba(52,211,153,.08)}
+
+  .qtext{font-size:19px;line-height:1.55;margin:14px 0 20px;font-weight:700;color:#f1f5f9}
+
+  .opts{display:grid;gap:10px}
+  .opt{
+    text-align:left;font:inherit;color:#e2e8f0;font-size:15px;
+    background:rgba(36,48,63,.45);border:1px solid #2a3646;
+    padding:14px 16px;border-radius:10px;cursor:pointer;transition:.15s;line-height:1.5;
+  }
+  .opt:hover:not(:disabled){background:rgba(60,45,20,.55);border-color:#f59e0b;transform:translateX(2px)}
+  .opt:disabled{cursor:default;opacity:.95}
+  .opt.ok{background:rgba(16,185,129,.14);border-color:#10b981;color:#a7f3d0}
+  .opt.bad{background:rgba(239,68,68,.14);border-color:#ef4444;color:#fecaca}
+
+  .openrow{display:flex;gap:10px;flex-wrap:wrap}
+  .openrow input{
+    flex:1;min-width:200px;font:inherit;font-size:15px;padding:14px 16px;border-radius:10px;
+    border:1px solid #2a3646;background:rgba(8,11,18,.85);color:#e6ecf5;outline:none;transition:.15s;
+  }
+  .openrow input:focus{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+  .openrow input:disabled{opacity:.75}
+
+  .btn{
+    font:inherit;font-weight:700;font-size:15px;padding:13px 22px;border-radius:10px;
+    border:1px solid #2a3646;background:rgba(36,48,63,.6);color:#e2e8f0;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{background:rgba(60,45,20,.6);border-color:#f59e0b}
+  .btn.primary{
+    background:linear-gradient(90deg,#f59e0b,#38bdf8);border:none;color:#08111a;
+    box-shadow:0 8px 24px rgba(56,189,248,.25);
+  }
+  .btn.primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+
+  .fb{
+    margin-top:18px;border-radius:10px;padding:0 18px;max-height:0;overflow:hidden;
+    opacity:0;transition:max-height .3s ease,opacity .25s ease,padding .25s ease;
+    border:1px solid transparent;
+  }
+  .fb.show{max-height:900px;opacity:1;padding:18px}
+  .fb.good{background:rgba(16,185,129,.08);border-color:#10b981}
+  .fb.bad{background:rgba(239,68,68,.08);border-color:#ef4444}
+  .fbhead{font-weight:800;margin-bottom:8px;font-size:16px}
+  .fb.good .fbhead{color:#6ee7b7}
+  .fb.bad .fbhead{color:#fca5a5}
+  .fbc{margin-bottom:8px;font-size:15px}
+  .fbe{font-size:14px;color:#94a3b8;margin-bottom:16px;line-height:1.55}
+
+  .fscore{
+    font-size:54px;font-weight:900;line-height:1;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    background:linear-gradient(90deg,#fbbf24,#7dd3fc);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .fgrade{font-size:21px;font-weight:800;margin:14px 0 4px;color:#f1f5f9}
+  .fsub{color:#7c8ba1;font-size:14px;margin-bottom:6px}
+  .fh3{
+    margin:26px 0 10px;font-size:12px;color:#7c8ba1;
+    text-transform:uppercase;letter-spacing:1.2px;font-weight:700;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  .mlist{display:grid;gap:12px;margin-bottom:24px}
+  .mitem{
+    background:rgba(36,48,63,.35);border:1px solid #2a3646;
+    border-left:3px solid #ef4444;border-radius:8px;padding:14px 16px;
+  }
+  .mq{font-size:14px;margin-bottom:8px;font-weight:600;color:#f1f5f9}
+  .ma{font-size:14px;color:#6ee7b7;margin-bottom:6px}
+  .me{font-size:13px;color:#94a3b8;line-height:1.5}
+
+  @media (max-width:520px){
+    .card{padding:18px}
+    .qtext{font-size:17px}
+    .brand{font-size:15px}
+    .opt{font-size:14px;padding:13px 14px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">// 🛡️ Кибер<span>Щит</span> · 10–11</div>
+    <div class="scorebox">БАЛЛЫ: <b id="score">0</b> / 15</div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="meta" id="counter">Готовы начать?</div>
+  <div class="card" id="screen"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====================== ДАННЫЕ ЗАДАНИЙ ====================== */
+
+  const QUESTIONS = [
+    /* ---------- 4 задания с выбором одного ответа ---------- */
+    {
+      type: 'choice',
+      text: 'На школьную почту приходит письмо: «Обновление расписания! Войдите для подтверждения: sch00l-journal.ru». В адресе — нули вместо букв «о». Что делать?',
+      options: [
+        'Перейти и войти — нужно же посмотреть расписание',
+        'Проверить домен, не переходить по ссылке и сообщить администратору или учителю информатики',
+        'Переслать письмо одноклассникам, чтобы они тоже проверили расписание',
+        'Ответить на письмо и попросить официальный адрес'
+      ],
+      correct: 1,
+      explain: 'Это тайпсквоттинг (омограф-атака): домен похож на настоящий, но отличается символами. Всегда проверяйте адрес сайта и отправителя, а о подозрительном письме сообщайте администратору.'
+    },
+    {
+      type: 'choice',
+      text: 'Какое утверждение о менеджерах паролей верно?',
+      options: [
+        'Они небезопасны — надёжнее один сложный пароль на всех сайтах',
+        'Менеджер генерирует уникальные пароли и хранит их в зашифрованном виде, а вы помните один мастер-пароль',
+        'Менеджер паролей отменяет необходимость в двухфакторной аутентификации',
+        'Менеджер работает только на компьютере и не подходит для смартфона'
+      ],
+      correct: 1,
+      explain: 'Менеджер паролей решает главную проблему — повторное использование паролей. Уникальный пароль для каждого сайта плюс 2FA — базовый уровень цифровой гигиены.'
+    },
+    {
+      type: 'choice',
+      text: 'Звонок: «Это служба безопасности банка/школы. Чтобы отменить подозрительную операцию, назовите код из SMS». Что правильно?',
+      options: [
+        'Назвать код — звонят же из официальной организации',
+        'Не называть код никому, положить трубку и перезвонить по официальному номеру',
+        'Назвать только последние четыре цифры кода',
+        'Попросить перезвонить позже и продолжить разговор'
+      ],
+      correct: 1,
+      explain: 'Ни одна настоящая организация не просит код из SMS. Это вишинг — голосовой фишинг. Кладите трубку и перезванивайте по номеру с официального сайта.'
+    },
+    {
+      type: 'choice',
+      text: 'Вы узнали, что сайт, где у вас был аккаунт, допустил утечку паролей. Что делать в первую очередь?',
+      options: [
+        'Ничего — утечка случилась не у вас',
+        'Сменить пароль на этом сайте и везде, где использовался тот же, включить 2FA и проверить аккаунты через сервис мониторинга утечек',
+        'Удалить аккаунт и забыть',
+        'Написать в поддержку сайта и попросить компенсацию'
+      ],
+      correct: 1,
+      explain: 'Утёкший пароль опасен прежде всего повторами. Смена пароля везде, где он использовался, плюс 2FA и проверка через сервисы вроде Have I Been Pwned — стандартный план действий.'
+    },
+
+    /* ---------- 8 заданий закрытого типа («верно / неверно») ---------- */
+    {
+      type: 'tf',
+      text: 'Использовать один и тот же сложный пароль на всех сайтах безопасно, если он достаточно длинный.',
+      correct: false,
+      explain: 'Повторное использование — главная причина массовых взломов. Утечка на одном сайте открывает злоумышленникам все остальные аккаунты.'
+    },
+    {
+      type: 'tf',
+      text: 'Двухфакторная аутентификация значительно снижает риск взлома даже в случае утечки пароля.',
+      correct: true,
+      explain: 'Даже зная пароль, без второго фактора злоумышленник не войдёт в аккаунт. Это одна из самых эффективных и доступных мер защиты.'
+    },
+    {
+      type: 'tf',
+      text: 'Публичный Wi-Fi в кафе подходит для входа в банк и личную почту без VPN.',
+      correct: false,
+      explain: 'В открытых сетях трафик можно перехватить. Для финансовых операций и работы с личными данными используйте мобильный интернет или проверенный VPN.'
+    },
+    {
+      type: 'tf',
+      text: 'Открытые данные — школа, класс, город, расписание — помогают злоумышленникам в социальной инженерии.',
+      correct: true,
+      explain: 'Из открытых источников (OSINT) строят правдоподобные легенды: «Я из вашей школы», «Вас зовут…». Чем меньше личного в открытом доступе, тем труднее вас обмануть.'
+    },
+    {
+      type: 'tf',
+      text: 'Антивирус в полной мере защищает от социальной инженерии и фишинга.',
+      correct: false,
+      explain: 'Большинство современных атак начинается с человека, а не с кода. Антивирус — важный, но не достаточный слой защиты. Критическое мышление важнее.'
+    },
+    {
+      type: 'tf',
+      text: 'Законодательство о персональных данных требует защищать информацию и предусматривает ответственность за её разглашение.',
+      correct: true,
+      explain: 'В России это Федеральный закон № 152-ФЗ «О персональных данных». Незаконное распространение или утечка данных может повлечь административную и уголовную ответственность.'
+    },
+    {
+      type: 'tf',
+      text: 'Резервную копию достаточно хранить на том же диске, просто в другой папке.',
+      correct: false,
+      explain: 'Копия рядом с оригиналом не спасёт от шифровальщика или поломки диска. Надёжный подход — правило 3-2-1: три копии, два носителя, одна копия вне основного места.'
+    },
+    {
+      type: 'tf',
+      text: 'Современные фишинговые письма всегда содержат орфографические ошибки и странный дизайн.',
+      correct: false,
+      explain: 'Современный фишинг бывает без ошибок и с точной копией дизайна легитимного сервиса. Надёжнее проверять домен, отправителя и не спешить с переходами и вводом данных.'
+    },
+
+    /* ---------- 3 задания открытого типа ---------- */
+    {
+      type: 'open',
+      text: 'Как называется голосовой фишинг — мошенничество по телефону, когда злоумышленник выдаёт себя за сотрудника банка или школы и выманивает данные или коды? (ответ — одно слово)',
+      answers: ['вишинг', 'vishing'],
+      show: 'Вишинг (голосовой фишинг)',
+      explain: 'Вишинг — от voice + phishing. Признаки: срочность, угрозы, просьба назвать код из SMS или данные карты. Настоящие службы так не делают.'
+    },
+    {
+      type: 'open',
+      text: 'Как называется поддельное видео или аудио, созданное с помощью ИИ, где лицо и голос реального человека выглядят и звучат как настоящие? (ответ — одно слово)',
+      answers: ['дипфейк', 'deepfake'],
+      show: 'Дипфейк (deepfake)',
+      explain: 'Дипфейки используют для мошенничества, шантажа и дезинформации. Проверяйте необычные просьбы «голосом знакомого» по другому каналу связи.'
+    },
+    {
+      type: 'open',
+      text: 'Как называется метод обмана, при котором злоумышленник манипулирует человеком, чтобы тот сам выдал пароль, код или перевёл деньги? (два слова)',
+      answers: ['социальнаяинженерия', 'социнженерия', 'socialengineering'],
+      show: 'Социальная инженерия',
+      explain: 'Социальная инженерия атакует не технику, а человека: спешка, страх, авторитет, выгода. Лучшая защита — пауза и проверка информации по независимому каналу.'
+    }
+  ];
+
+  /* ====================== СОСТОЯНИЕ ИГРЫ ====================== */
+
+  const TYPE_LABEL = {
+    choice: 'Выбор ответа',
+    tf: 'Верно / неверно',
+    open: 'Открытый вопрос'
+  };
+
+  const screen   = document.getElementById('screen');
+  const barEl    = document.getElementById('bar');
+  const counterEl= document.getElementById('counter');
+  const scoreEl  = document.getElementById('score');
+
+  let order = [];
+  let idx = 0;
+  let score = 0;
+  let answered = false;
+  let mistakes = [];
+
+  /* ====================== ВСПОМОГАТЕЛЬНЫЕ ====================== */
+
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function norm(s){
+    return String(s || '')
+      .toLowerCase()
+      .replace(/ё/g, 'е')
+      .replace(/[^a-zа-я0-9]/g, '');
+  }
+
+  function correctAnswerText(q){
+    if(q.type === 'choice') return q.options[q.correct];
+    if(q.type === 'tf')     return q.correct ? 'Верно' : 'Неверно';
+    return q.show;
+  }
+
+  function updateScore(){
+    scoreEl.textContent = score;
+  }
+
+  function setProgress(done, total){
+    barEl.style.width = (total ? (done / total) * 100 : 0) + '%';
+  }
+
+  /* ====================== ЭКРАНЫ ====================== */
+
+  function renderStart(){
+    setProgress(0, QUESTIONS.length);
+    counterEl.textContent = 'Готовы начать?';
+    screen.innerHTML =
+      '<h1 class="h1">🛡️ КиберЩит 10–11</h1>' +
+      '<p class="lead">Мини-игра по кибербезопасности для учеников 10–11 классов. ' +
+      '15 заданий: с выбором ответа, «верно / неверно» и открытые вопросы.</p>' +
+      '<ul class="rules">' +
+        '<li>За каждый верный ответ — 1 балл. Максимум — 15 баллов.</li>' +
+        '<li>После каждого ответа вы увидите пояснение — это полезный совет.</li>' +
+        '<li>Порядок заданий случайный, поэтому игра каждый раз новая.</li>' +
+        '<li>Игра работает полностью офлайн: данные никуда не отправляются.</li>' +
+      '</ul>' +
+      '<button class="btn primary" id="startBtn">Начать игру</button>';
+
+    document.getElementById('startBtn').addEventListener('click', startGame);
+  }
+
+  function startGame(){
+    order = shuffle(QUESTIONS.map(function(_, i){ return i; }));
+    idx = 0;
+    score = 0;
+    mistakes = [];
+    updateScore();
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    answered = false;
+    const q = QUESTIONS[order[idx]];
+    const total = QUESTIONS.length;
+
+    counterEl.textContent = 'Вопрос ' + (idx + 1) + ' из ' + total;
+    setProgress(idx, total);
+
+    let html = '<div class="tag ' + q.type + '">' + TYPE_LABEL[q.type] + '</div>';
+    html += '<h2 class="qtext">' + q.text + '</h2>';
+
+    if(q.type === 'choice'){
+      const shuffled = shuffle(q.options.map(function(t, i){ return { t: t, i: i }; }));
+      html += '<div class="opts" id="opts">';
+      shuffled.forEach(function(o){
+        html += '<button class="opt" data-i="' + o.i + '">' + o.t + '</button>';
+      });
+      html += '</div>';
+    } else if(q.type === 'tf'){
+      html += '<div class="opts" id="opts">' +
+                '<button class="opt" data-i="1">✅ Верно</button>' +
+                '<button class="opt" data-i="0">❌ Неверно</button>' +
+              '</div>';
+    } else {
+      html += '<div class="openrow">' +
+                '<input id="openInput" type="text" autocomplete="off" spellcheck="false" placeholder="Введите ответ...">' +
+                '<button class="btn primary" id="openBtn">Ответить</button>' +
+              '</div>';
+    }
+
+    html += '<div id="fb" class="fb" role="status" aria-live="polite"></div>';
+
+    screen.innerHTML = html;
+
+    if(q.type === 'choice' || q.type === 'tf'){
+      const all = Array.prototype.slice.call(screen.querySelectorAll('.opt'));
+      all.forEach(function(b){
+        b.addEventListener('click', function(){ answerChoice(q, b, all); });
+      });
+    } else {
+      const inp = document.getElementById('openInput');
+      const btn = document.getElementById('openBtn');
+      const submit = function(){ answerOpen(q, inp); };
+      btn.addEventListener('click', submit);
+      inp.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); submit(); }
+      });
+      setTimeout(function(){ inp.focus(); }, 30);
+    }
+
+    screen.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ====================== ОТВЕТЫ ====================== */
+
+  function answerChoice(q, btn, all){
+    if(answered) return;
+    answered = true;
+
+    const picked = Number(btn.dataset.i);
+    const isCorrect = (q.type === 'choice')
+      ? (picked === q.correct)
+      : ((picked === 1) === q.correct);
+
+    all.forEach(function(b){ b.disabled = true; });
+
+    if(isCorrect){
+      btn.classList.add('ok');
+      score++;
+      updateScore();
+    } else {
+      btn.classList.add('bad');
+      all.forEach(function(b){
+        const bi = Number(b.dataset.i);
+        const good = (q.type === 'choice')
+          ? (bi === q.correct)
+          : ((bi === 1) === q.correct);
+        if(good) b.classList.add('ok');
+      });
+      mistakes.push({ q: q });
+    }
+
+    showFeedback(q, isCorrect);
+  }
+
+  function answerOpen(q, inp){
+    if(answered) return;
+    const value = norm(inp.value);
+    if(!value){
+      inp.focus();
+      inp.style.borderColor = '#ef4444';
+      setTimeout(function(){ inp.style.borderColor = ''; }, 900);
+      return;
+    }
+    answered = true;
+
+    const isCorrect = q.answers.some(function(a){
+      return value.indexOf(norm(a)) !== -1;
+    });
+
+    inp.disabled = true;
+    document.getElementById('openBtn').disabled = true;
+
+    if(isCorrect){
+      score++;
+      updateScore();
+    } else {
+      mistakes.push({ q: q });
+    }
+
+    showFeedback(q, isCorrect);
+  }
+
+  function showFeedback(q, isCorrect){
+    const fb = document.getElementById('fb');
+    const isLast = (idx === order.length - 1);
+
+    fb.className = 'fb show ' + (isCorrect ? 'good' : 'bad');
+    fb.innerHTML =
+      '<div class="fbhead">' + (isCorrect ? '✅ Верно!' : '❌ Неверно') + '</div>' +
+      (isCorrect ? '' : '<div class="fbc">Правильный ответ: <b>' + correctAnswerText(q) + '</b></div>') +
+      '<div class="fbe">' + q.explain + '</div>' +
+      '<button class="btn primary" id="nextBtn">' +
+        (isLast ? 'Показать результат' : 'Далее →') +
+      '</button>';
+
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.addEventListener('click', nextQuestion);
+    setTimeout(function(){
+      try{ nextBtn.focus(); }catch(e){}
+    }, 60);
+  }
+
+  function nextQuestion(){
+    idx++;
+    if(idx >= order.length){
+      renderFinish();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  /* ====================== ФИНАЛ ====================== */
+
+  function renderFinish(){
+    const total = QUESTIONS.length;
+    const pct = Math.round((score / total) * 100);
+
+    setProgress(1, 1);
+    counterEl.textContent = 'Игра завершена';
+
+    let title;
+    if(score >= 14)      title = '🏆 Эксперт по кибербезопасности';
+    else if(score >= 11) title = '👍 Уверенный пользователь';
+    else if(score >= 8)  title = '📚 Есть над чем поработать';
+    else                 title = '⚠️ Стоит повторить основы';
+
+    let html = '<div class="fscore">' + score + ' / ' + total + '</div>' +
+               '<div class="fgrade">' + title + '</div>' +
+               '<div class="fsub">Правильных ответов: ' + pct + '%</div>';
+
+    if(mistakes.length){
+      html += '<h3 class="fh3">Разбор ошибок</h3><div class="mlist">';
+      mistakes.forEach(function(m){
+        html += '<div class="mitem">' +
+                  '<div class="mq">' + m.q.text + '</div>' +
+                  '<div class="ma">Правильный ответ: <b>' + correctAnswerText(m.q) + '</b></div>' +
+                  '<div class="me">' + m.q.explain + '</div>' +
+                '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<p class="lead" style="margin-top:16px">Ошибок нет — безупречный результат! ' +
+              'Поделитесь правилами цифровой гигиены с друзьями и близкими.</p>';
+    }
+
+    html += '<button class="btn primary" id="restartBtn">Пройти заново</button>';
+
+    screen.innerHTML = html;
+
+    document.getElementById('restartBtn').addEventListener('click', function(){
+      renderStart();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ====================== СТАРТ ====================== */
+
+  renderStart();
+
+})();
+</script>
+</body>
+</html>
